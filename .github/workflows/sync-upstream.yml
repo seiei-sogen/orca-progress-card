@@ -2,7 +2,7 @@ name: Sync upstream
 
 on:
   schedule:
-    - cron: "17 21 */3 * *" # 3日おき 06:17 JST（月末は31日→1日で間隔が縮む）
+    - cron: "17 21 */3 * *" # 3日おき 06:17 JST（月末は 31日・28日→1日で間隔が縮む）
   workflow_dispatch:
 
 permissions:
@@ -16,4 +16,6 @@ jobs:
       # GitHub の「Sync fork」ボタンと同じ API。競合したら失敗して止まる。
       - run: gh repo sync "$GITHUB_REPOSITORY"
         env:
-          GH_TOKEN: ${{ github.token }}
+          # github.token は workflows 権限を持てず、フォーク元が .github/workflows/ を変えた回の同期が拒否される。
+          # その push では CI も動かない。Contents と Workflows に書き込める PAT を SYNC_TOKEN に入れると両方解消する。
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
